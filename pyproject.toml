@@ -1,0 +1,67 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "session-lens"
+version = "0.1.0"
+description = "AI coding session analyzer and optimizer — track, analyze, and optimize your AI-assisted coding sessions"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    { name = "Edgar Ortega Ramirez" },
+]
+keywords = ["ai", "coding", "session", "analysis", "optimization", "llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Text Processing :: General",
+]
+
+dependencies = [
+    "click>=8.1.7,<9.0.0",
+    "pydantic>=2.8.0,<3.0.0",
+    "pyyaml>=6.0.2,<7.0.0",
+    "rich>=13.9.0,<14.0.0",
+    "sqlite-utils>=3.36,<4.0.0",
+    "tiktoken>=0.8.0,<1.0.0",
+]
+
+[project.optional-dependencies]
+mcp = [
+    "mcp>=1.0.0,<2.0.0",
+]
+dev = [
+    "pytest>=8.3.0,<9.0.0",
+    "pytest-cov>=6.0.0,<7.0.0",
+    "ruff>=0.8.0,<1.0.0",
+]
+
+[project.scripts]
+session-lens = "session_lens.cli:main"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/session_lens"]
