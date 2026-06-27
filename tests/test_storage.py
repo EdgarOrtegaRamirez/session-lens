@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -46,7 +45,7 @@ class TestSessionStore:
     """Tests for the SessionStore class."""
 
     def test_init_creates_db(self, tmp_path: Path) -> None:
-        store = SessionStore(db_path=tmp_path / "new.db")
+        SessionStore(db_path=tmp_path / "new.db")
         assert (tmp_path / "new.db").exists()
 
     def test_save_and_get_session(self, store: SessionStore, sample_session: CodingSession) -> None:
@@ -192,7 +191,7 @@ class TestSessionStore:
 
     def test_wal_mode(self, tmp_path: Path) -> None:
         """Test that WAL journaling is enabled."""
-        store = SessionStore(db_path=tmp_path / "wal.db")
+        SessionStore(db_path=tmp_path / "wal.db")
         # The database should be created
         assert (tmp_path / "wal.db").exists()
 

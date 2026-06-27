@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 from .models import CodingSession, SessionStatus
 
@@ -338,7 +338,7 @@ class SessionStore:
             status_counts = {row["status"]: row["count"] for row in status_rows}
 
             # Total tokens
-            total_tokens_row = conn.execute(
+            conn.execute(
                 "SELECT COALESCE(SUM(summary_json), '0') as total FROM sessions"
             ).fetchone()
             # Parse from summary_json

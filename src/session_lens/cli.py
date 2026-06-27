@@ -10,9 +10,8 @@ import click
 import yaml
 
 from .analyzer import ReportGenerator, SessionAnalyzer
-from .models import CodingSession, FileEdit, FileEditType, Message, MessageType, SessionStatus
+from .models import CodingSession, Message, MessageType, SessionStatus
 from .storage import SessionStore
-
 
 pass_store = click.make_pass_decorator(SessionStore, ensure=True)
 
@@ -87,7 +86,7 @@ def stop(ctx: click.Context, session_id: str) -> None:
 
     session.status = SessionStatus.COMPLETED
     import datetime
-    session.completed_at = datetime.datetime.now(datetime.timezone.utc)
+    session.completed_at = datetime.datetime.now(datetime.UTC)
     store.save_session(session)
     click.echo(f"✅ Session stopped: {session_id}")
     summary = session.compute_summary()
@@ -202,7 +201,7 @@ def show(store: SessionStore, session_id: str, fmt: str) -> None:
         click.echo(f"Notes: {session.notes}")
 
     summary = session.compute_summary()
-    click.echo(f"")
+    click.echo("")
     click.echo(f"Tokens: {summary.total_tokens:,} (prompts: {summary.prompt_tokens:,}, responses: {summary.response_tokens:,})")
     click.echo(f"Messages: {summary.message_count}")
     click.echo(f"File edits: {summary.file_edits_count}")
@@ -285,15 +284,15 @@ def info(store: SessionStore, fmt: str) -> None:
         return
 
     click.echo(f"{'='*50}")
-    click.echo(f"  SessionLens — Aggregate Statistics")
+    click.echo("  SessionLens — Aggregate Statistics")
     click.echo(f"{'='*50}")
-    click.echo(f"")
+    click.echo("")
     click.echo(f"Total sessions: {stats['total_sessions']}")
     click.echo(f"Total tokens used: {stats['total_tokens']:,}")
 
     if stats["status_breakdown"]:
-        click.echo(f"")
-        click.echo(f"By status:")
+        click.echo("")
+        click.echo("By status:")
         for status, count in stats["status_breakdown"].items():
             click.echo(f"  {status}: {count}")
 
@@ -306,14 +305,14 @@ def info(store: SessionStore, fmt: str) -> None:
             click.echo(f"Average session duration: {mins:.1f}m")
 
     if stats["model_usage"]:
-        click.echo(f"")
-        click.echo(f"Model usage:")
+        click.echo("")
+        click.echo("Model usage:")
         for model, count in sorted(stats["model_usage"].items(), key=lambda x: -x[1]):
             click.echo(f"  {model}: {count}")
 
     if stats["top_files"]:
-        click.echo(f"")
-        click.echo(f"Top files edited:")
+        click.echo("")
+        click.echo("Top files edited:")
         for file in stats["top_files"][:5]:
             click.echo(f"  {file['path']}: {file['edits']} edits")
 
@@ -362,8 +361,8 @@ def init(db_path: str | None) -> None:
     """Initialize SessionLens database."""
     store = SessionStore(db_path)
     import os
-    db_dir = str(store.db_path.parent)
-    click.echo(f"✅ SessionLens initialized.")
+    str(store.db_path.parent)
+    click.echo("✅ SessionLens initialized.")
     click.echo(f"   Database: {store.db_path}")
 
     # Create sessions directory for JSON backups

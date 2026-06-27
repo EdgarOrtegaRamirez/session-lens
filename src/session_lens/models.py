@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 
-class MessageType(str, Enum):
+class MessageType(StrEnum):
     """Types of messages in a coding session."""
 
     PROMPT = "prompt"
@@ -21,7 +21,7 @@ class MessageType(str, Enum):
     SYSTEM = "system"
 
 
-class FileEditType(str, Enum):
+class FileEditType(StrEnum):
     """Types of file edits."""
 
     CREATE = "create"
@@ -30,7 +30,7 @@ class FileEditType(str, Enum):
     RENAME = "rename"
 
 
-class SessionStatus(str, Enum):
+class SessionStatus(StrEnum):
     """Status of a coding session."""
 
     ACTIVE = "active"
@@ -64,7 +64,7 @@ class Message:
         self.type: MessageType = message_type
         self.role: str = role
         self.content: str = content
-        self.timestamp: datetime = datetime.now(timezone.utc)
+        self.timestamp: datetime = datetime.now(UTC)
         self.metadata: dict[str, Any] = metadata or {}
         self.token_count: int | None = token_count
 
@@ -117,7 +117,7 @@ class FileEdit:
         self.lines_added: int = lines_added
         self.lines_removed: int = lines_removed
         self.description: str | None = description
-        self.timestamp: datetime = datetime.now(timezone.utc)
+        self.timestamp: datetime = datetime.now(UTC)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -208,14 +208,14 @@ class CodingSession:
         self.notes: str | None = notes
         self.messages: list[Message] = messages or []
         self.file_edits: list[FileEdit] = file_edits or []
-        self.started_at: datetime = started_at or datetime.now(timezone.utc)
+        self.started_at: datetime = started_at or datetime.now(UTC)
         self.completed_at: datetime | None = completed_at
         self.summary: SessionSummary = SessionSummary()
         self.session_metadata: dict[str, Any] = {}
 
     @property
     def duration_seconds(self) -> float:
-        end = self.completed_at or datetime.now(timezone.utc)
+        end = self.completed_at or datetime.now(UTC)
         return (end - self.started_at).total_seconds()
 
     @property

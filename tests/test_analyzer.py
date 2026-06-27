@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
-import pytest
+from datetime import UTC, datetime
 
 from session_lens.analyzer import ReportGenerator, SessionAnalyzer
 from session_lens.models import (
@@ -13,7 +11,6 @@ from session_lens.models import (
     FileEditType,
     Message,
     MessageType,
-    SessionStatus,
 )
 
 
@@ -87,7 +84,7 @@ class TestSessionAnalyzer:
             title="Test session",
             project_path="/tmp/test",
             model="gpt-4o",
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
         session.add_message(Message(MessageType.PROMPT, "user", "Add feature", token_count=20))
         session.add_message(Message(MessageType.RESPONSE, "assistant", "Done", token_count=50))

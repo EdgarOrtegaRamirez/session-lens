@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import re
 import statistics
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from pathlib import Path
+from dataclasses import dataclass
 from typing import Any
 
 import tiktoken
@@ -14,8 +12,6 @@ import tiktoken
 from .models import (
     CodingSession,
     FileEdit,
-    FileEditType,
-    Message,
     MessageType,
 )
 
@@ -368,24 +364,24 @@ class ReportGenerator:
         lines: list[str] = []
 
         lines.append(f"{'='*60}")
-        lines.append(f"Session Lens Report")
+        lines.append("Session Lens Report")
         lines.append(f"{'='*60}")
         lines.append(f"Session: {analysis['session_title']}")
         lines.append(f"ID: {analysis['session_id']}")
         lines.append(f"Duration: {analysis['duration_human']} ({analysis['duration_seconds']:.0f}s)")
-        lines.append(f"")
+        lines.append("")
 
         # Token stats
         lines.append(f"{'─'*40}")
-        lines.append(f"Token Usage")
+        lines.append("Token Usage")
         lines.append(f"{'─'*40}")
         lines.append(f"Total tokens: {analysis['total_tokens']:,}")
         lines.append(f"Messages: {analysis['prompt_count']}")
-        lines.append(f"")
+        lines.append("")
 
         # Productivity
         lines.append(f"{'─'*40}")
-        lines.append(f"Productivity")
+        lines.append("Productivity")
         lines.append(f"{'─'*40}")
         prod = analysis.get("productivity", {})
         lines.append(f"Net lines added: {prod.get('net_lines_added', 0):+,}")
@@ -393,7 +389,7 @@ class ReportGenerator:
         lines.append(f"Files changed: {prod.get('files_changed', 0)}")
         lines.append(f"Edits per minute: {prod.get('edits_per_minute', 0):.2f}")
         lines.append(f"Tokens per line: {prod.get('tokens_per_line', 0):.1f}")
-        lines.append(f"")
+        lines.append("")
 
         # Files touched
         files = analysis.get("files_touched", [])
@@ -405,13 +401,13 @@ class ReportGenerator:
                 lines.append(f"  • {f_path}")
             if len(files) > 20:
                 lines.append(f"  ... and {len(files) - 20} more")
-            lines.append(f"")
+            lines.append("")
 
         # File edits detail
         edits = analysis.get("file_analysis", [])
         if edits:
             lines.append(f"{'─'*40}")
-            lines.append(f"File Edits Detail")
+            lines.append("File Edits Detail")
             lines.append(f"{'─'*40}")
             for edit in edits[:15]:
                 lines.append(
@@ -419,12 +415,12 @@ class ReportGenerator:
                     f"+{edit['lines_added']} -{edit['lines_removed']}  "
                     f"[{edit['size_impact']}]"
                 )
-            lines.append(f"")
+            lines.append("")
 
         # Prompt analysis
         prompt_info = analysis.get("prompt_analysis", {})
         lines.append(f"{'─'*40}")
-        lines.append(f"Prompt Analysis")
+        lines.append("Prompt Analysis")
         lines.append(f"{'─'*40}")
         lines.append(f"Average complexity: {prompt_info.get('average_complexity', 'n/a')}")
         lines.append(f"Dominant intent: {prompt_info.get('dominant_intent', 'n/a')}")
@@ -433,23 +429,23 @@ class ReportGenerator:
         lines.append(f"Prompts with questions: {prompt_info.get('prompts_with_questions', 0)}")
         dist = prompt_info.get("length_distribution", {})
         lines.append(f"Length distribution: short={dist.get('short', 0)}, medium={dist.get('medium', 0)}, long={dist.get('long', 0)}, very_long={dist.get('very_long', 0)}")
-        lines.append(f"")
+        lines.append("")
 
         # Engagement
         engagement = analysis.get("engagement", {})
         lines.append(f"{'─'*40}")
-        lines.append(f"Engagement")
+        lines.append("Engagement")
         lines.append(f"{'─'*40}")
         lines.append(f"Avg prompt length: {engagement.get('average_length', 0):.0f} words")
         lines.append(f"Length trend: {engagement.get('length_trend', 'n/a')}")
         lines.append(f"Question ratio: {engagement.get('question_ratio', 0):.0%}")
-        lines.append(f"")
+        lines.append("")
 
         # Insights
         insights = analysis.get("insights", [])
         if insights:
             lines.append(f"{'─'*40}")
-            lines.append(f"Insights")
+            lines.append("Insights")
             lines.append(f"{'─'*40}")
             for insight in insights:
                 icon = {"info": "ℹ", "warning": "⚠", "suggestion": "💡"}.get(
@@ -458,13 +454,13 @@ class ReportGenerator:
                 lines.append(f"  {icon} [{insight['severity'].upper():9s}] {insight['message']}")
                 if insight.get("details"):
                     lines.append(f"     {insight['details']}")
-            lines.append(f"")
+            lines.append("")
         else:
             lines.append(f"{'─'*40}")
-            lines.append(f"Insights")
+            lines.append("Insights")
             lines.append(f"{'─'*40}")
-            lines.append(f"  ✅ No issues detected — session looks good!")
-            lines.append(f"")
+            lines.append("  ✅ No issues detected — session looks good!")
+            lines.append("")
 
         lines.append(f"{'='*60}")
         return "\n".join(lines)
@@ -473,68 +469,68 @@ class ReportGenerator:
         """Generate a markdown report from analysis results."""
         lines: list[str] = []
 
-        lines.append(f"# Session Lens Report")
-        lines.append(f"")
+        lines.append("# Session Lens Report")
+        lines.append("")
         lines.append(f"## {analysis['session_title']}")
         lines.append(f"- **Session ID:** `{analysis['session_id']}`")
         lines.append(f"- **Duration:** {analysis['duration_human']} ({analysis['duration_seconds']:.0f}s)")
         lines.append(f"- **Total Tokens:** {analysis['total_tokens']:,}")
         lines.append(f"- **Messages:** {analysis['prompt_count']}")
-        lines.append(f"")
+        lines.append("")
 
         # Productivity
         prod = analysis.get("productivity", {})
-        lines.append(f"## Productivity Metrics")
-        lines.append(f"")
-        lines.append(f"| Metric | Value |")
-        lines.append(f"|--------|-------|")
+        lines.append("## Productivity Metrics")
+        lines.append("")
+        lines.append("| Metric | Value |")
+        lines.append("|--------|-------|")
         lines.append(f"| Net Lines Added | {prod.get('net_lines_added', 0):+,} |")
         lines.append(f"| Lines Removed | {prod.get('net_lines_removed', 0):+,} |")
         lines.append(f"| Files Changed | {prod.get('files_changed', 0)} |")
         lines.append(f"| Edits/Minute | {prod.get('edits_per_minute', 0):.2f} |")
         lines.append(f"| Tokens/Line | {prod.get('tokens_per_line', 0):.1f} |")
-        lines.append(f"")
+        lines.append("")
 
         # Prompt Analysis
         prompt_info = analysis.get("prompt_analysis", {})
-        lines.append(f"## Prompt Analysis")
-        lines.append(f"")
-        lines.append(f"| Metric | Value |")
-        lines.append(f"|--------|-------|")
+        lines.append("## Prompt Analysis")
+        lines.append("")
+        lines.append("| Metric | Value |")
+        lines.append("|--------|-------|")
         lines.append(f"| Avg Complexity | {prompt_info.get('average_complexity', 'n/a')} |")
         lines.append(f"| Dominant Intent | {prompt_info.get('dominant_intent', 'n/a')} |")
         lines.append(f"| Avg Tokens/Prompt | {prompt_info.get('average_token_estimate', 0):.0f} |")
         lines.append(f"| Prompts With Code | {prompt_info.get('prompts_with_code', 0)} |")
         lines.append(f"| Prompts With Questions | {prompt_info.get('prompts_with_questions', 0)} |")
-        lines.append(f"")
+        lines.append("")
 
         # File Edits
         edits = analysis.get("file_analysis", [])
         if edits:
             lines.append(f"## File Edits ({len(edits)})")
-            lines.append(f"")
-            lines.append(f"| Type | Path | Added | Removed | Size |")
-            lines.append(f"|------|------|-------|---------|------|")
+            lines.append("")
+            lines.append("| Type | Path | Added | Removed | Size |")
+            lines.append("|------|------|-------|---------|------|")
             for e in edits[:20]:
                 lines.append(
                     f"| {e['edit_type']} | `{e['path']}` | {e['lines_added']} | {e['lines_removed']} | {e['size_impact']} |"
                 )
-            lines.append(f"")
+            lines.append("")
 
         # Insights
         insights = analysis.get("insights", [])
         if insights:
-            lines.append(f"## Insights")
-            lines.append(f"")
+            lines.append("## Insights")
+            lines.append("")
             for i in insights:
                 lines.append(f"- **[{i['severity'].upper()}]** {i['message']}")
                 if i.get("details"):
                     lines.append(f"  - {i['details']}")
-            lines.append(f"")
+            lines.append("")
         else:
-            lines.append(f"## Insights")
-            lines.append(f"")
-            lines.append(f"✅ No issues detected.")
-            lines.append(f"")
+            lines.append("## Insights")
+            lines.append("")
+            lines.append("✅ No issues detected.")
+            lines.append("")
 
         return "\n".join(lines)

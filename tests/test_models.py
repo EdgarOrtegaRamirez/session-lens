@@ -2,12 +2,8 @@
 
 from __future__ import annotations
 
-import json
-import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-
-import pytest
 
 from session_lens.models import (
     CodingSession,
@@ -275,7 +271,7 @@ class TestCodingSession:
         assert "1.5h" in session.duration_human
 
     def test_to_dict_and_from_dict_round_trip(self) -> None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         session = CodingSession(
             title="Round-trip test",
             project_path="/tmp/test",
@@ -317,7 +313,7 @@ class TestCodingSession:
         session.add_file_edit(
             FileEdit("data/test.txt", FileEditType.CREATE, lines_added=100)
         )
-        session.completed_at = datetime.now(timezone.utc)
+        session.completed_at = datetime.now(UTC)
         session.compute_summary()
 
         path = tmp_path / "session.json"

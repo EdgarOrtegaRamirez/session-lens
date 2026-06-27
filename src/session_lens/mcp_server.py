@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import json
+from typing import Any
+
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent
-from typing import Any
-import json
+from mcp.types import TextContent, Tool
 
 from .analyzer import SessionAnalyzer
 from .storage import SessionStore
@@ -108,6 +109,7 @@ def create_mcp_server(store: SessionStore | None = None) -> Server:
             if fmt == "json":
                 return [TextContent(type="text", text=json.dumps(analysis, indent=2))]
 
+            nonlocal report_gen
             if report_gen is None:
                 from .analyzer import ReportGenerator
                 report_gen = ReportGenerator(analyzer)
