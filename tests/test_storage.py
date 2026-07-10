@@ -224,3 +224,40 @@ class TestSessionStore:
         assert retrieved.title == "Empty session"
         assert len(retrieved.messages) == 0
         assert len(retrieved.file_edits) == 0
+
+    def test_db_roundtrip_preserves_enums_and_tags(
+        self, store: SessionStore, sample_session: CodingSession
+    ) -> None:
+        """Regression test: DB round-trip must preserve enum types and tags list."""
+        sample_session.status = SessionStatus.COMPLETED
+        store.save_session(sample_session)
+
+        # get_session round-trip
+        retrieved = store.get_session(sample_session.id)
+        assert retrieved is not None
+        assert isinstance(retrieved.status, SessionStatus)
+        assert retrieved.status == SessionStatus.COMPLETED
+        assert isinstance(retrieved.tags, list)
+        assert retrieved.tags == ["test", "backend"]
+        assert isinstance(retrieved.messages[0].type, MessageType)
+        assert retrieved.messages[0].type == MessageType.PROMPT
+        assert isinstance(retrieved.file_edits[0].edit_type, FileEditType)
+        assert retrieved.file_edits[0].edit_type == FileEditType.MODIFY
+
+        # list_sessions round-trip
+        sessions = store.list_sessions()
+        assert len(sessions) == 1
+        s = sessions[0]
+        assert isinstance(s.status, SessionStatus)
+        assert s.status == SessionStatus.COMPLETED
+        assert isinstance(s.tags, list)
+        assert s.tags == ["test", "backend"]
+        assert isinstance(s.messages[0].type, MessageType)
+
+        # search_sessions round-trip
+        results = store.search_sessions("Test")
+        assert len(results) == 1
+        r = results[0]
+        assert isinstance(r.status, SessionStatus)
+        assert isinstance(r.tags, list)
+        assert r.tags == ["test", "backend"]

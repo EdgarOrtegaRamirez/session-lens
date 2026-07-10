@@ -83,7 +83,8 @@ class Message:
     def from_dict(cls, data: dict[str, Any]) -> Message:
         msg = cls.__new__(cls)
         msg.id = data["id"]
-        msg.type = data["type"]
+        msg_type = data["type"]
+        msg.type = MessageType(msg_type) if isinstance(msg_type, str) else msg_type
         msg.role = data["role"]
         msg.content = data["content"]
         msg.timestamp = datetime.fromisoformat(data["timestamp"])
@@ -135,7 +136,8 @@ class FileEdit:
         edit = cls.__new__(cls)
         edit.id = data["id"]
         edit.path = data["path"]
-        edit.edit_type = data["edit_type"]
+        edit_type = data["edit_type"]
+        edit.edit_type = FileEditType(edit_type) if isinstance(edit_type, str) else edit_type
         edit.lines_added = data.get("lines_added", 0)
         edit.lines_removed = data.get("lines_removed", 0)
         edit.description = data.get("description")
@@ -287,9 +289,13 @@ class CodingSession:
         session.id = data["id"]
         session.title = data["title"]
         session.project_path = data["project_path"]
-        session.status = data["status"]
+        status = data["status"]
+        session.status = SessionStatus(status) if isinstance(status, str) else status
         session.model = data.get("model")
-        session.tags = data.get("tags", [])
+        tags = data.get("tags", [])
+        if isinstance(tags, str):
+            tags = json.loads(tags)
+        session.tags = tags
         session.notes = data.get("notes")
         session.started_at = datetime.fromisoformat(data["started_at"])
         completed = data.get("completed_at")

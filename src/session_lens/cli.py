@@ -13,8 +13,6 @@ from .analyzer import ReportGenerator, SessionAnalyzer
 from .models import CodingSession, Message, MessageType, SessionStatus
 from .storage import SessionStore
 
-pass_store = click.make_pass_decorator(SessionStore, ensure=True)
-
 
 def _output_format(ctx: click.Context, param: click.Parameter, value: str | None) -> str:
     """Callback to validate and normalize output format."""
@@ -139,9 +137,10 @@ def add_message(
 @click.option("--limit", "-l", default=20, show_default=True, help="Max results")
 @click.option("--offset", default=0, show_default=True, help="Offset for pagination")
 @click.option("--format", "-f", "fmt", callback=_output_format, default=None, help="Output format (text or json)")
-@pass_store
-def list_sessions(store: SessionStore, status: str | None, limit: int, offset: int, fmt: str) -> None:
+@click.pass_context
+def list_sessions(ctx: click.Context, status: str | None, limit: int, offset: int, fmt: str) -> None:
     """List coding sessions."""
+    store = ctx.obj["store"]
     sessions = store.list_sessions(status=status, limit=limit, offset=offset)
     if fmt == "json":
         data = [{
@@ -174,9 +173,10 @@ def list_sessions(store: SessionStore, status: str | None, limit: int, offset: i
 @main.command()
 @click.argument("session_id")
 @click.option("--format", "-f", "fmt", callback=_output_format, default=None, help="Output format (text or json)")
-@pass_store
-def show(store: SessionStore, session_id: str, fmt: str) -> None:
+@click.pass_context
+def show(ctx: click.Context, session_id: str, fmt: str) -> None:
     """Show a session's details."""
+    store = ctx.obj["store"]
     session = store.get_session(session_id)
     if not session:
         click.echo(f"❌ Session {session_id} not found.", err=True)
@@ -245,9 +245,10 @@ def analyze(ctx: click.Context, session_id: str, fmt: str) -> None:
 @click.option("--tag", "-g", "tags", multiple=True, help="Filter by tags (repeatable)")
 @click.option("--limit", "-l", default=20, show_default=True, help="Max results")
 @click.option("--format", "-f", "fmt", callback=_output_format, default=None, help="Output format (text or json)")
-@pass_store
-def search(store: SessionStore, query: str, tags: tuple[str, ...], limit: int, fmt: str) -> None:
+@click.pass_context
+def search(ctx: click.Context, query: str, tags: tuple[str, ...], limit: int, fmt: str) -> None:
     """Search sessions by title, notes, or tags."""
+    store = ctx.obj["store"]
     sessions = store.search_sessions(query, tags=list(tags) if tags else None, limit=limit)
     if fmt == "json":
         data = [{
@@ -274,9 +275,10 @@ def search(store: SessionStore, query: str, tags: tuple[str, ...], limit: int, f
 # --- INFO command ---
 @main.command()
 @click.option("--format", "-f", "fmt", callback=_output_format, default=None, help="Output format (text or json)")
-@pass_store
-def info(store: SessionStore, fmt: str) -> None:
+@click.pass_context
+def info(ctx: click.Context, fmt: str) -> None:
     """Show aggregate statistics."""
+    store = ctx.obj["store"]
     stats = store.get_stats()
 
     if fmt == "json":
@@ -320,9 +322,10 @@ def info(store: SessionStore, fmt: str) -> None:
 # --- DELETE command ---
 @main.command()
 @click.argument("session_id")
-@pass_store
-def delete(store: SessionStore, session_id: str) -> None:
+@click.pass_context
+def delete(ctx: click.Context, session_id: str) -> None:
     """Delete a session."""
+    store = ctx.obj["store"]
     if store.delete_session(session_id):
         click.echo(f"✅ Session {session_id} deleted.")
     else:
@@ -356,16 +359,15 @@ def sample_config() -> None:
 
 # --- INIT command ---
 @main.command()
-@click.option("--db", "db_path", default=None, help="Custom database path")
-def init(db_path: str | None) -> None:
+@click.option("--db", "db_path", default=None, help="Custom database path (overrides global --db)")
+@click.pass_context
+def init(ctx: click.Context, db_path: str | None) -> None:
     """Initialize SessionLens database."""
-    store = SessionStore(db_path)
-    import os
-    str(store.db_path.parent)
+    store = SessionStore(db_path) if db_path else ctx.obj["store"]
     click.echo("✅ SessionLens initialized.")
     click.echo(f"   Database: {store.db_path}")
 
     # Create sessions directory for JSON backups
-    sessions_dir = Path(os.path.expanduser("~/.session-lens/sessions"))
+    sessions_dir = Path(store.db_path.parent / "sessions")
     sessions_dir.mkdir(parents=True, exist_ok=True)
     click.echo(f"   Sessions dir: {sessions_dir}")
