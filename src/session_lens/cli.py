@@ -50,7 +50,14 @@ def main(ctx: click.Context, db_path: str | None) -> None:
 @click.option("--tag", "-g", "tags", multiple=True, help="Tags to assign (repeatable)")
 @click.option("--notes", "-n", default=None, help="Session notes")
 @click.pass_context
-def start(ctx: click.Context, title: str, project: str, model: str | None, tags: tuple[str, ...], notes: str | None) -> None:
+def start(
+    ctx: click.Context,
+    title: str,
+    project: str,
+    model: str | None,
+    tags: tuple[str, ...],
+    notes: str | None,
+) -> None:
     """Start a new coding session."""
     store = ctx.obj["store"]
     session = CodingSession(
@@ -84,6 +91,7 @@ def stop(ctx: click.Context, session_id: str) -> None:
 
     session.status = SessionStatus.COMPLETED
     import datetime
+
     session.completed_at = datetime.datetime.now(datetime.UTC)
     store.save_session(session)
     click.echo(f"✅ Session stopped: {session_id}")
@@ -97,7 +105,13 @@ def stop(ctx: click.Context, session_id: str) -> None:
 # --- ADD-MESSAGE command ---
 @main.command("add-message")
 @click.option("--id", "session_id", required=True, help="Session ID")
-@click.option("--type", "msg_type", required=True, type=click.Choice(["prompt", "response", "file_edit", "tool_call", "error", "system"]), help="Message type")
+@click.option(
+    "--type",
+    "msg_type",
+    required=True,
+    type=click.Choice(["prompt", "response", "file_edit", "tool_call", "error", "system"]),
+    help="Message type",
+)
 @click.option("--role", "-r", required=True, help="Role (e.g., user, assistant)")
 @click.option("--content", "-c", required=True, help="Message content")
 @click.option("--tokens", "-n", default=None, type=int, help="Token count")
@@ -133,26 +147,43 @@ def add_message(
 
 # --- LIST command ---
 @main.command()
-@click.option("--status", "-s", default=None, help="Filter by status (active, completed, interrupted, errored)")
+@click.option(
+    "--status",
+    "-s",
+    default=None,
+    help="Filter by status (active, completed, interrupted, errored)",
+)
 @click.option("--limit", "-l", default=20, show_default=True, help="Max results")
 @click.option("--offset", default=0, show_default=True, help="Offset for pagination")
-@click.option("--format", "-f", "fmt", callback=_output_format, default=None, help="Output format (text or json)")
+@click.option(
+    "--format",
+    "-f",
+    "fmt",
+    callback=_output_format,
+    default=None,
+    help="Output format (text or json)",
+)
 @click.pass_context
-def list_sessions(ctx: click.Context, status: str | None, limit: int, offset: int, fmt: str) -> None:
+def list_sessions(
+    ctx: click.Context, status: str | None, limit: int, offset: int, fmt: str
+) -> None:
     """List coding sessions."""
     store = ctx.obj["store"]
     sessions = store.list_sessions(status=status, limit=limit, offset=offset)
     if fmt == "json":
-        data = [{
-            "id": s.id,
-            "title": s.title,
-            "status": s.status.value if isinstance(s.status, SessionStatus) else s.status,
-            "project_path": s.project_path,
-            "model": s.model,
-            "tags": s.tags,
-            "started_at": s.started_at.isoformat(),
-            "duration_human": s.duration_human,
-        } for s in sessions]
+        data = [
+            {
+                "id": s.id,
+                "title": s.title,
+                "status": s.status.value if isinstance(s.status, SessionStatus) else s.status,
+                "project_path": s.project_path,
+                "model": s.model,
+                "tags": s.tags,
+                "started_at": s.started_at.isoformat(),
+                "duration_human": s.duration_human,
+            }
+            for s in sessions
+        ]
         click.echo(json.dumps(data, indent=2))
         return
 
@@ -172,7 +203,14 @@ def list_sessions(ctx: click.Context, status: str | None, limit: int, offset: in
 # --- SHOW command ---
 @main.command()
 @click.argument("session_id")
-@click.option("--format", "-f", "fmt", callback=_output_format, default=None, help="Output format (text or json)")
+@click.option(
+    "--format",
+    "-f",
+    "fmt",
+    callback=_output_format,
+    default=None,
+    help="Output format (text or json)",
+)
 @click.pass_context
 def show(ctx: click.Context, session_id: str, fmt: str) -> None:
     """Show a session's details."""
@@ -189,7 +227,9 @@ def show(ctx: click.Context, session_id: str, fmt: str) -> None:
     click.echo(f"Session: {session.title}")
     click.echo(f"ID: {session.id}")
     click.echo(f"Project: {session.project_path}")
-    click.echo(f"Status: {session.status.value if isinstance(session.status, SessionStatus) else session.status}")
+    click.echo(
+        f"Status: {session.status.value if isinstance(session.status, SessionStatus) else session.status}"
+    )
     click.echo(f"Model: {session.model or 'unknown'}")
     click.echo(f"Started: {session.started_at.isoformat()}")
     if session.completed_at:
@@ -202,7 +242,9 @@ def show(ctx: click.Context, session_id: str, fmt: str) -> None:
 
     summary = session.compute_summary()
     click.echo("")
-    click.echo(f"Tokens: {summary.total_tokens:,} (prompts: {summary.prompt_tokens:,}, responses: {summary.response_tokens:,})")
+    click.echo(
+        f"Tokens: {summary.total_tokens:,} (prompts: {summary.prompt_tokens:,}, responses: {summary.response_tokens:,})"
+    )
     click.echo(f"Messages: {summary.message_count}")
     click.echo(f"File edits: {summary.file_edits_count}")
 
@@ -215,7 +257,14 @@ def show(ctx: click.Context, session_id: str, fmt: str) -> None:
 # --- ANALYZE command ---
 @main.command()
 @click.argument("session_id")
-@click.option("--format", "-f", "fmt", callback=_output_format, default=None, help="Output format (text or json or markdown)")
+@click.option(
+    "--format",
+    "-f",
+    "fmt",
+    callback=_output_format,
+    default=None,
+    help="Output format (text or json or markdown)",
+)
 @click.pass_context
 def analyze(ctx: click.Context, session_id: str, fmt: str) -> None:
     """Analyze a coding session."""
@@ -244,19 +293,29 @@ def analyze(ctx: click.Context, session_id: str, fmt: str) -> None:
 @click.argument("query")
 @click.option("--tag", "-g", "tags", multiple=True, help="Filter by tags (repeatable)")
 @click.option("--limit", "-l", default=20, show_default=True, help="Max results")
-@click.option("--format", "-f", "fmt", callback=_output_format, default=None, help="Output format (text or json)")
+@click.option(
+    "--format",
+    "-f",
+    "fmt",
+    callback=_output_format,
+    default=None,
+    help="Output format (text or json)",
+)
 @click.pass_context
 def search(ctx: click.Context, query: str, tags: tuple[str, ...], limit: int, fmt: str) -> None:
     """Search sessions by title, notes, or tags."""
     store = ctx.obj["store"]
     sessions = store.search_sessions(query, tags=list(tags) if tags else None, limit=limit)
     if fmt == "json":
-        data = [{
-            "id": s.id,
-            "title": s.title,
-            "status": s.status.value if isinstance(s.status, SessionStatus) else s.status,
-            "started_at": s.started_at.isoformat(),
-        } for s in sessions]
+        data = [
+            {
+                "id": s.id,
+                "title": s.title,
+                "status": s.status.value if isinstance(s.status, SessionStatus) else s.status,
+                "started_at": s.started_at.isoformat(),
+            }
+            for s in sessions
+        ]
         click.echo(json.dumps(data, indent=2))
         return
 
@@ -269,12 +328,21 @@ def search(ctx: click.Context, query: str, tags: tuple[str, ...], limit: int, fm
     click.echo("─" * 100)
     for s in sessions:
         tag_str = ", ".join(s.tags[:3])
-        click.echo(f"{s.id:<10} {s.title[:39]:<40} {s.started_at.isoformat()[:19]:<22} {tag_str:<30}")
+        click.echo(
+            f"{s.id:<10} {s.title[:39]:<40} {s.started_at.isoformat()[:19]:<22} {tag_str:<30}"
+        )
 
 
 # --- INFO command ---
 @main.command()
-@click.option("--format", "-f", "fmt", callback=_output_format, default=None, help="Output format (text or json)")
+@click.option(
+    "--format",
+    "-f",
+    "fmt",
+    callback=_output_format,
+    default=None,
+    help="Output format (text or json)",
+)
 @click.pass_context
 def info(ctx: click.Context, fmt: str) -> None:
     """Show aggregate statistics."""
@@ -285,9 +353,9 @@ def info(ctx: click.Context, fmt: str) -> None:
         click.echo(json.dumps(stats, indent=2))
         return
 
-    click.echo(f"{'='*50}")
+    click.echo(f"{'=' * 50}")
     click.echo("  SessionLens — Aggregate Statistics")
-    click.echo(f"{'='*50}")
+    click.echo(f"{'=' * 50}")
     click.echo("")
     click.echo(f"Total sessions: {stats['total_sessions']}")
     click.echo(f"Total tokens used: {stats['total_tokens']:,}")

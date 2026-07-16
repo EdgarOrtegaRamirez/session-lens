@@ -51,8 +51,7 @@ class TestSessionAnalyzer:
     def test_analyze_question_prompt(self) -> None:
         analyzer = SessionAnalyzer()
         analysis = analyzer.analyze_prompt(
-            "How does the authentication middleware work? "
-            "What is the token expiration time?"
+            "How does the authentication middleware work? What is the token expiration time?"
         )
         assert analysis.contains_questions
         assert analysis.intent == "learning"
@@ -73,9 +72,7 @@ class TestSessionAnalyzer:
 
     def test_analyze_file_reference(self) -> None:
         analyzer = SessionAnalyzer()
-        analysis = analyzer.analyze_prompt(
-            "Fix the bug in src/auth.py line 42"
-        )
+        analysis = analyzer.analyze_prompt("Fix the bug in src/auth.py line 42")
         assert analysis.has_files
 
     def test_analyze_session_basic(self) -> None:
@@ -125,7 +122,9 @@ class TestSessionAnalyzer:
             project_path="/tmp/test",
         )
         session.add_message(Message(MessageType.PROMPT, "user", "Do everything", token_count=40000))
-        session.add_message(Message(MessageType.RESPONSE, "assistant", "Long response", token_count=20000))
+        session.add_message(
+            Message(MessageType.RESPONSE, "assistant", "Long response", token_count=20000)
+        )
 
         result = analyzer.analyze_session(session)
         assert result["total_tokens"] == 60000
@@ -220,11 +219,11 @@ class TestReportGenerator:
             title="Good session",
             project_path="/tmp/test",
         )
-        session.add_message(Message(MessageType.PROMPT, "user", "Add small feature", token_count=10))
-        session.add_message(Message(MessageType.RESPONSE, "assistant", "Done", token_count=30))
-        session.add_file_edit(
-            FileEdit("src/small.py", FileEditType.CREATE, lines_added=5)
+        session.add_message(
+            Message(MessageType.PROMPT, "user", "Add small feature", token_count=10)
         )
+        session.add_message(Message(MessageType.RESPONSE, "assistant", "Done", token_count=30))
+        session.add_file_edit(FileEdit("src/small.py", FileEditType.CREATE, lines_added=5))
         session.completed_at = session.started_at
 
         analysis = analyzer.analyze_session(session)

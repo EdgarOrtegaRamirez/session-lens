@@ -76,8 +76,14 @@ class SessionAnalyzer:
 
     # Intent detection patterns
     INTENT_PATTERNS = [
-        (r"\b(want|need|require|should|please|could you|can you)\b.*\b(create|implement|build|add|write|make)\b", "creation"),
-        (r"\b(create|implement|build|add|write|make)\b.*\b(endpoint|feature|module|function|class)\b", "creation"),
+        (
+            r"\b(want|need|require|should|please|could you|can you)\b.*\b(create|implement|build|add|write|make)\b",
+            "creation",
+        ),
+        (
+            r"\b(create|implement|build|add|write|make)\b.*\b(endpoint|feature|module|function|class)\b",
+            "creation",
+        ),
         (r"\b(fix|resolve|patch|correct)\b.*\b(bug|error|issue|problem)\b", "debugging"),
         (r"\b(refactor|restructure|improve)\b", "refactoring"),
         (r"\b(explain|teach|show.*how|what.*is)\b", "learning"),
@@ -105,7 +111,9 @@ class SessionAnalyzer:
             word_count=len(prompt.split()),
             token_estimate=self.estimate_tokens(prompt),
             has_code=bool(re.search(r"```|<code>|/\*|function |def |class |import ", prompt)),
-            has_files=bool(re.search(r"\.(py|js|ts|go|rs|md|json|yaml|yml|toml|txt|css|html)", prompt)),
+            has_files=bool(
+                re.search(r"\.(py|js|ts|go|rs|md|json|yaml|yml|toml|txt|css|html)", prompt)
+            ),
             contains_questions=bool(re.search(r"\?", prompt)),
         )
 
@@ -187,18 +195,21 @@ class SessionAnalyzer:
             "prompt_analysis": {
                 "average_complexity": self._avg_complexity([a.complexity for a in analyses]),
                 "dominant_intent": self._mode_intent([a.intent for a in analyses]),
-                "average_token_estimate": statistics.mean(
-                    [a.token_estimate for a in analyses]
-                ) if analyses else 0,
+                "average_token_estimate": statistics.mean([a.token_estimate for a in analyses])
+                if analyses
+                else 0,
                 "prompts_with_code": sum(1 for a in analyses if a.has_code),
                 "prompts_with_questions": sum(1 for a in analyses if a.contains_questions),
                 "length_distribution": self._length_distribution(analyses),
             },
-            "file_analysis": [
-                self.analyze_file_edit(e) for e in session.file_edits
-            ],
+            "file_analysis": [self.analyze_file_edit(e) for e in session.file_edits],
             "insights": [
-                {"category": i.category, "severity": i.severity, "message": i.message, "details": i.details}
+                {
+                    "category": i.category,
+                    "severity": i.severity,
+                    "message": i.message,
+                    "details": i.details,
+                }
                 for i in insights
             ],
             "engagement": engagement,
@@ -215,9 +226,7 @@ class SessionAnalyzer:
             net_lines_removed=total_removed,
             files_changed=len(set(e.path for e in session.file_edits)),
             edits_per_minute=len(session.file_edits) / duration_min if duration_min > 0 else 0,
-            tokens_per_line=(
-                session.summary.total_tokens / max(total_added, 1)
-            ),
+            tokens_per_line=(session.summary.total_tokens / max(total_added, 1)),
             error_rate=0,
         )
 
@@ -232,63 +241,75 @@ class SessionAnalyzer:
 
         # High token usage insight
         if session.summary.total_tokens > 50000:
-            insights.append(SessionInsight(
-                category="tokens",
-                severity="warning",
-                message="High token usage detected",
-                details=f"Session used {session.summary.total_tokens:,} tokens. Consider breaking this task into smaller sessions.",
-            ))
+            insights.append(
+                SessionInsight(
+                    category="tokens",
+                    severity="warning",
+                    message="High token usage detected",
+                    details=f"Session used {session.summary.total_tokens:,} tokens. Consider breaking this task into smaller sessions.",
+                )
+            )
 
         # Low productivity insight
         if metrics.edits_per_minute < 0.1 and session.duration_seconds > 300:
-            insights.append(SessionInsight(
-                category="productivity",
-                severity="suggestion",
-                message="Low edit rate detected",
-                details=f"Only {metrics.edits_per_minute:.2f} edits/min. Review if the AI is taking too long to produce useful changes.",
-            ))
+            insights.append(
+                SessionInsight(
+                    category="productivity",
+                    severity="suggestion",
+                    message="Low edit rate detected",
+                    details=f"Only {metrics.edits_per_minute:.2f} edits/min. Review if the AI is taking too long to produce useful changes.",
+                )
+            )
 
         # Excessive file touching
         files_touched = session.summary.files_touched
         if len(files_touched) > 20:
-            insights.append(SessionInsight(
-                category="scope",
-                severity="warning",
-                message="Many files touched in session",
-                details=f"Session modified {len(files_touched)} files. Consider if the task scope should be narrowed.",
-            ))
+            insights.append(
+                SessionInsight(
+                    category="scope",
+                    severity="warning",
+                    message="Many files touched in session",
+                    details=f"Session modified {len(files_touched)} files. Consider if the task scope should be narrowed.",
+                )
+            )
 
         # Code prompt ratio
         prompts_with_code = sum(1 for a in prompt_analyses if a.has_code)
         if prompts_with_code > 0 and len(prompt_analyses) > 0:
             ratio = prompts_with_code / len(prompt_analyses)
             if ratio > 0.8:
-                insights.append(SessionInsight(
-                    category="prompts",
-                    severity="info",
-                    message="High code prompt ratio",
-                    details=f"{prompts_with_code}/{len(prompt_analyses)} prompts include code. Consider including code context upfront.",
-                ))
+                insights.append(
+                    SessionInsight(
+                        category="prompts",
+                        severity="info",
+                        message="High code prompt ratio",
+                        details=f"{prompts_with_code}/{len(prompt_analyses)} prompts include code. Consider including code context upfront.",
+                    )
+                )
 
         # Session duration insight
         if session.duration_seconds > 3600:
-            insights.append(SessionInsight(
-                category="duration",
-                severity="warning",
-                message="Very long session detected",
-                details=f"Session lasted {session.duration_human}. Consider breaking into focused, shorter sessions.",
-            ))
+            insights.append(
+                SessionInsight(
+                    category="duration",
+                    severity="warning",
+                    message="Very long session detected",
+                    details=f"Session lasted {session.duration_human}. Consider breaking into focused, shorter sessions.",
+                )
+            )
 
         # Error rate insight
         if session.summary.error_count > 0:
             error_ratio = session.summary.error_count / max(session.summary.message_count, 1)
             if error_ratio > 0.1:
-                insights.append(SessionInsight(
-                    category="quality",
-                    severity="warning",
-                    message=f"Error rate: {error_ratio:.0%}",
-                    details=f"Session had {session.summary.error_count} errors out of {session.summary.message_count} messages.",
-                ))
+                insights.append(
+                    SessionInsight(
+                        category="quality",
+                        severity="warning",
+                        message=f"Error rate: {error_ratio:.0%}",
+                        details=f"Session had {session.summary.error_count} errors out of {session.summary.message_count} messages.",
+                    )
+                )
 
         return insights
 
@@ -306,8 +327,8 @@ class SessionAnalyzer:
 
         # Simple trend detection
         if len(word_counts) >= 3:
-            first_half = statistics.mean(word_counts[:len(word_counts)//2])
-            second_half = statistics.mean(word_counts[len(word_counts)//2:])
+            first_half = statistics.mean(word_counts[: len(word_counts) // 2])
+            second_half = statistics.mean(word_counts[len(word_counts) // 2 :])
             if second_half > first_half * 1.2:
                 trend = "increasing"
             elif second_half < first_half * 0.8:
@@ -363,26 +384,28 @@ class ReportGenerator:
         """Generate a text report from analysis results."""
         lines: list[str] = []
 
-        lines.append(f"{'='*60}")
+        lines.append(f"{'=' * 60}")
         lines.append("Session Lens Report")
-        lines.append(f"{'='*60}")
+        lines.append(f"{'=' * 60}")
         lines.append(f"Session: {analysis['session_title']}")
         lines.append(f"ID: {analysis['session_id']}")
-        lines.append(f"Duration: {analysis['duration_human']} ({analysis['duration_seconds']:.0f}s)")
+        lines.append(
+            f"Duration: {analysis['duration_human']} ({analysis['duration_seconds']:.0f}s)"
+        )
         lines.append("")
 
         # Token stats
-        lines.append(f"{'─'*40}")
+        lines.append(f"{'─' * 40}")
         lines.append("Token Usage")
-        lines.append(f"{'─'*40}")
+        lines.append(f"{'─' * 40}")
         lines.append(f"Total tokens: {analysis['total_tokens']:,}")
         lines.append(f"Messages: {analysis['prompt_count']}")
         lines.append("")
 
         # Productivity
-        lines.append(f"{'─'*40}")
+        lines.append(f"{'─' * 40}")
         lines.append("Productivity")
-        lines.append(f"{'─'*40}")
+        lines.append(f"{'─' * 40}")
         prod = analysis.get("productivity", {})
         lines.append(f"Net lines added: {prod.get('net_lines_added', 0):+,}")
         lines.append(f"Lines removed: {prod.get('net_lines_removed', 0):+,}")
@@ -394,9 +417,9 @@ class ReportGenerator:
         # Files touched
         files = analysis.get("files_touched", [])
         if files:
-            lines.append(f"{'─'*40}")
+            lines.append(f"{'─' * 40}")
             lines.append(f"Files ({len(files)})")
-            lines.append(f"{'─'*40}")
+            lines.append(f"{'─' * 40}")
             for f_path in files[:20]:
                 lines.append(f"  • {f_path}")
             if len(files) > 20:
@@ -406,9 +429,9 @@ class ReportGenerator:
         # File edits detail
         edits = analysis.get("file_analysis", [])
         if edits:
-            lines.append(f"{'─'*40}")
+            lines.append(f"{'─' * 40}")
             lines.append("File Edits Detail")
-            lines.append(f"{'─'*40}")
+            lines.append(f"{'─' * 40}")
             for edit in edits[:15]:
                 lines.append(
                     f"  {edit['edit_type']:8s}  {edit['path']:30s}  "
@@ -419,23 +442,25 @@ class ReportGenerator:
 
         # Prompt analysis
         prompt_info = analysis.get("prompt_analysis", {})
-        lines.append(f"{'─'*40}")
+        lines.append(f"{'─' * 40}")
         lines.append("Prompt Analysis")
-        lines.append(f"{'─'*40}")
+        lines.append(f"{'─' * 40}")
         lines.append(f"Average complexity: {prompt_info.get('average_complexity', 'n/a')}")
         lines.append(f"Dominant intent: {prompt_info.get('dominant_intent', 'n/a')}")
         lines.append(f"Avg token estimate: {prompt_info.get('average_token_estimate', 0):.0f}")
         lines.append(f"Prompts with code: {prompt_info.get('prompts_with_code', 0)}")
         lines.append(f"Prompts with questions: {prompt_info.get('prompts_with_questions', 0)}")
         dist = prompt_info.get("length_distribution", {})
-        lines.append(f"Length distribution: short={dist.get('short', 0)}, medium={dist.get('medium', 0)}, long={dist.get('long', 0)}, very_long={dist.get('very_long', 0)}")
+        lines.append(
+            f"Length distribution: short={dist.get('short', 0)}, medium={dist.get('medium', 0)}, long={dist.get('long', 0)}, very_long={dist.get('very_long', 0)}"
+        )
         lines.append("")
 
         # Engagement
         engagement = analysis.get("engagement", {})
-        lines.append(f"{'─'*40}")
+        lines.append(f"{'─' * 40}")
         lines.append("Engagement")
-        lines.append(f"{'─'*40}")
+        lines.append(f"{'─' * 40}")
         lines.append(f"Avg prompt length: {engagement.get('average_length', 0):.0f} words")
         lines.append(f"Length trend: {engagement.get('length_trend', 'n/a')}")
         lines.append(f"Question ratio: {engagement.get('question_ratio', 0):.0%}")
@@ -444,9 +469,9 @@ class ReportGenerator:
         # Insights
         insights = analysis.get("insights", [])
         if insights:
-            lines.append(f"{'─'*40}")
+            lines.append(f"{'─' * 40}")
             lines.append("Insights")
-            lines.append(f"{'─'*40}")
+            lines.append(f"{'─' * 40}")
             for insight in insights:
                 icon = {"info": "ℹ", "warning": "⚠", "suggestion": "💡"}.get(
                     insight["severity"], "•"
@@ -456,13 +481,13 @@ class ReportGenerator:
                     lines.append(f"     {insight['details']}")
             lines.append("")
         else:
-            lines.append(f"{'─'*40}")
+            lines.append(f"{'─' * 40}")
             lines.append("Insights")
-            lines.append(f"{'─'*40}")
+            lines.append(f"{'─' * 40}")
             lines.append("  ✅ No issues detected — session looks good!")
             lines.append("")
 
-        lines.append(f"{'='*60}")
+        lines.append(f"{'=' * 60}")
         return "\n".join(lines)
 
     def generate_markdown_report(self, analysis: dict[str, Any]) -> str:
@@ -473,7 +498,9 @@ class ReportGenerator:
         lines.append("")
         lines.append(f"## {analysis['session_title']}")
         lines.append(f"- **Session ID:** `{analysis['session_id']}`")
-        lines.append(f"- **Duration:** {analysis['duration_human']} ({analysis['duration_seconds']:.0f}s)")
+        lines.append(
+            f"- **Duration:** {analysis['duration_human']} ({analysis['duration_seconds']:.0f}s)"
+        )
         lines.append(f"- **Total Tokens:** {analysis['total_tokens']:,}")
         lines.append(f"- **Messages:** {analysis['prompt_count']}")
         lines.append("")

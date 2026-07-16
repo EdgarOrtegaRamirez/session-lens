@@ -222,12 +222,8 @@ class TestCodingSession:
             title="Test session",
             project_path="/tmp/test",
         )
-        session.add_message(
-            Message(MessageType.PROMPT, "user", "Hello", token_count=10)
-        )
-        session.add_message(
-            Message(MessageType.RESPONSE, "assistant", "Hi there", token_count=20)
-        )
+        session.add_message(Message(MessageType.PROMPT, "user", "Hello", token_count=10))
+        session.add_message(Message(MessageType.RESPONSE, "assistant", "Hi there", token_count=20))
         session.add_file_edit(
             FileEdit("src/main.py", FileEditType.MODIFY, lines_added=5, lines_removed=2)
         )
@@ -263,6 +259,7 @@ class TestCodingSession:
 
         # Simulate 30 seconds
         from datetime import timedelta
+
         session.completed_at = session.started_at + timedelta(seconds=30)
         assert "30s" in session.duration_human
 
@@ -283,9 +280,7 @@ class TestCodingSession:
             completed_at=now,
         )
         session.add_message(Message(MessageType.PROMPT, "user", "Test prompt", token_count=10))
-        session.add_file_edit(
-            FileEdit("src/test.py", FileEditType.CREATE, lines_added=50)
-        )
+        session.add_file_edit(FileEdit("src/test.py", FileEditType.CREATE, lines_added=50))
         session.compute_summary()
 
         data = session.to_dict()
@@ -310,9 +305,7 @@ class TestCodingSession:
             tags=["test"],
         )
         session.add_message(Message(MessageType.PROMPT, "user", "Save test", token_count=15))
-        session.add_file_edit(
-            FileEdit("data/test.txt", FileEditType.CREATE, lines_added=100)
-        )
+        session.add_file_edit(FileEdit("data/test.txt", FileEditType.CREATE, lines_added=100))
         session.completed_at = datetime.now(UTC)
         session.compute_summary()
 

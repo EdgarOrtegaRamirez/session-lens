@@ -58,6 +58,7 @@ class SessionStore:
     def __init__(self, db_path: str | Path | None = None):
         if db_path is None:
             import os
+
             home = os.path.expanduser("~/.session-lens")
             Path(home).mkdir(parents=True, exist_ok=True)
             self.db_path = Path(home) / "session-lens.db"
@@ -92,7 +93,9 @@ class SessionStore:
                     session.id,
                     session.title,
                     session.project_path,
-                    session.status.value if isinstance(session.status, SessionStatus) else session.status,
+                    session.status.value
+                    if isinstance(session.status, SessionStatus)
+                    else session.status,
                     session.model,
                     json.dumps(session.tags),
                     session.notes,
@@ -149,9 +152,7 @@ class SessionStore:
     def get_session(self, session_id: str) -> CodingSession | None:
         """Retrieve a session by ID."""
         with self._connect() as conn:
-            row = conn.execute(
-                "SELECT * FROM sessions WHERE id = ?", (session_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM sessions WHERE id = ?", (session_id,)).fetchone()
             if not row:
                 return None
 
@@ -159,29 +160,33 @@ class SessionStore:
             for msg_row in conn.execute(
                 "SELECT * FROM messages WHERE session_id = ?", (session_id,)
             ):
-                messages.append({
-                    "id": msg_row["id"],
-                    "type": msg_row["type"],
-                    "role": msg_row["role"],
-                    "content": msg_row["content"],
-                    "timestamp": msg_row["timestamp"],
-                    "metadata": json.loads(msg_row["metadata"]) if msg_row["metadata"] else {},
-                    "token_count": msg_row["token_count"],
-                })
+                messages.append(
+                    {
+                        "id": msg_row["id"],
+                        "type": msg_row["type"],
+                        "role": msg_row["role"],
+                        "content": msg_row["content"],
+                        "timestamp": msg_row["timestamp"],
+                        "metadata": json.loads(msg_row["metadata"]) if msg_row["metadata"] else {},
+                        "token_count": msg_row["token_count"],
+                    }
+                )
 
             edits = []
             for edit_row in conn.execute(
                 "SELECT * FROM file_edits WHERE session_id = ?", (session_id,)
             ):
-                edits.append({
-                    "id": edit_row["id"],
-                    "path": edit_row["path"],
-                    "edit_type": edit_row["edit_type"],
-                    "lines_added": edit_row["lines_added"],
-                    "lines_removed": edit_row["lines_removed"],
-                    "description": edit_row["description"],
-                    "timestamp": edit_row["timestamp"],
-                })
+                edits.append(
+                    {
+                        "id": edit_row["id"],
+                        "path": edit_row["path"],
+                        "edit_type": edit_row["edit_type"],
+                        "lines_added": edit_row["lines_added"],
+                        "lines_removed": edit_row["lines_removed"],
+                        "description": edit_row["description"],
+                        "timestamp": edit_row["timestamp"],
+                    }
+                )
 
             data = dict(row)
             # Rename DB column to match model field name
@@ -218,28 +223,34 @@ class SessionStore:
                 for msg_row in conn.execute(
                     "SELECT * FROM messages WHERE session_id = ?", (data["id"],)
                 ):
-                    messages.append({
-                        "id": msg_row["id"],
-                        "type": msg_row["type"],
-                        "role": msg_row["role"],
-                        "content": msg_row["content"],
-                        "timestamp": msg_row["timestamp"],
-                        "metadata": json.loads(msg_row["metadata"]) if msg_row["metadata"] else {},
-                        "token_count": msg_row["token_count"],
-                    })
+                    messages.append(
+                        {
+                            "id": msg_row["id"],
+                            "type": msg_row["type"],
+                            "role": msg_row["role"],
+                            "content": msg_row["content"],
+                            "timestamp": msg_row["timestamp"],
+                            "metadata": json.loads(msg_row["metadata"])
+                            if msg_row["metadata"]
+                            else {},
+                            "token_count": msg_row["token_count"],
+                        }
+                    )
                 edits = []
                 for edit_row in conn.execute(
                     "SELECT * FROM file_edits WHERE session_id = ?", (data["id"],)
                 ):
-                    edits.append({
-                        "id": edit_row["id"],
-                        "path": edit_row["path"],
-                        "edit_type": edit_row["edit_type"],
-                        "lines_added": edit_row["lines_added"],
-                        "lines_removed": edit_row["lines_removed"],
-                        "description": edit_row["description"],
-                        "timestamp": edit_row["timestamp"],
-                    })
+                    edits.append(
+                        {
+                            "id": edit_row["id"],
+                            "path": edit_row["path"],
+                            "edit_type": edit_row["edit_type"],
+                            "lines_added": edit_row["lines_added"],
+                            "lines_removed": edit_row["lines_removed"],
+                            "description": edit_row["description"],
+                            "timestamp": edit_row["timestamp"],
+                        }
+                    )
                 data["messages"] = messages
                 data["file_edits"] = edits
                 # Rename DB columns to match model field names
@@ -286,28 +297,34 @@ class SessionStore:
                 for msg_row in conn.execute(
                     "SELECT * FROM messages WHERE session_id = ?", (data["id"],)
                 ):
-                    messages.append({
-                        "id": msg_row["id"],
-                        "type": msg_row["type"],
-                        "role": msg_row["role"],
-                        "content": msg_row["content"],
-                        "timestamp": msg_row["timestamp"],
-                        "metadata": json.loads(msg_row["metadata"]) if msg_row["metadata"] else {},
-                        "token_count": msg_row["token_count"],
-                    })
+                    messages.append(
+                        {
+                            "id": msg_row["id"],
+                            "type": msg_row["type"],
+                            "role": msg_row["role"],
+                            "content": msg_row["content"],
+                            "timestamp": msg_row["timestamp"],
+                            "metadata": json.loads(msg_row["metadata"])
+                            if msg_row["metadata"]
+                            else {},
+                            "token_count": msg_row["token_count"],
+                        }
+                    )
                 edits = []
                 for edit_row in conn.execute(
                     "SELECT * FROM file_edits WHERE session_id = ?", (data["id"],)
                 ):
-                    edits.append({
-                        "id": edit_row["id"],
-                        "path": edit_row["path"],
-                        "edit_type": edit_row["edit_type"],
-                        "lines_added": edit_row["lines_added"],
-                        "lines_removed": edit_row["lines_removed"],
-                        "description": edit_row["description"],
-                        "timestamp": edit_row["timestamp"],
-                    })
+                    edits.append(
+                        {
+                            "id": edit_row["id"],
+                            "path": edit_row["path"],
+                            "edit_type": edit_row["edit_type"],
+                            "lines_added": edit_row["lines_added"],
+                            "lines_removed": edit_row["lines_removed"],
+                            "description": edit_row["description"],
+                            "timestamp": edit_row["timestamp"],
+                        }
+                    )
                 data["messages"] = messages
                 data["file_edits"] = edits
                 # Rename DB columns to match model field names
@@ -352,12 +369,15 @@ class SessionStore:
                         pass
 
             # Average session duration
-            avg_duration = conn.execute(
-                """SELECT AVG(julianday(completed_at) - julianday(started_at)) * 86400
+            avg_duration = (
+                conn.execute(
+                    """SELECT AVG(julianday(completed_at) - julianday(started_at)) * 86400
                    FROM sessions
                    WHERE completed_at IS NOT NULL
                      AND status = 'completed'"""
-            ).fetchone()[0] or 0
+                ).fetchone()[0]
+                or 0
+            )
 
             # Files touched
             files_rows = conn.execute(

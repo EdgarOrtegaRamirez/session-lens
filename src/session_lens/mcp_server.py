@@ -83,16 +83,19 @@ def create_mcp_server(store: SessionStore | None = None) -> Server:
             status = arguments.get("status")
             limit = arguments.get("limit", 20)
             sessions = store.list_sessions(status=status, limit=limit)
-            data = [{
-                "id": s.id,
-                "title": s.title,
-                "status": s.status.value if hasattr(s.status, 'value') else s.status,
-                "project_path": s.project_path,
-                "model": s.model,
-                "started_at": s.started_at.isoformat(),
-                "duration_human": s.duration_human,
-                "token_count": s.compute_summary().total_tokens,
-            } for s in sessions]
+            data = [
+                {
+                    "id": s.id,
+                    "title": s.title,
+                    "status": s.status.value if hasattr(s.status, "value") else s.status,
+                    "project_path": s.project_path,
+                    "model": s.model,
+                    "started_at": s.started_at.isoformat(),
+                    "duration_human": s.duration_human,
+                    "token_count": s.compute_summary().total_tokens,
+                }
+                for s in sessions
+            ]
             return [TextContent(type="text", text=json.dumps(data, indent=2))]
 
         elif name == "session_lens_analyze_session":
@@ -112,10 +115,13 @@ def create_mcp_server(store: SessionStore | None = None) -> Server:
             nonlocal report_gen
             if report_gen is None:
                 from .analyzer import ReportGenerator
+
                 report_gen = ReportGenerator(analyzer)
 
             if fmt == "markdown":
-                return [TextContent(type="text", text=report_gen.generate_markdown_report(analysis))]
+                return [
+                    TextContent(type="text", text=report_gen.generate_markdown_report(analysis))
+                ]
             else:
                 return [TextContent(type="text", text=report_gen.generate_text_report(analysis))]
 
@@ -139,4 +145,5 @@ async def run_mcp_server() -> None:
 
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(run_mcp_server())

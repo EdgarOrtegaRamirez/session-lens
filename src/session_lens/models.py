@@ -124,7 +124,9 @@ class FileEdit:
         return {
             "id": self.id,
             "path": self.path,
-            "edit_type": self.edit_type.value if isinstance(self.edit_type, FileEditType) else self.edit_type,
+            "edit_type": self.edit_type.value
+            if isinstance(self.edit_type, FileEditType)
+            else self.edit_type,
             "lines_added": self.lines_added,
             "lines_removed": self.lines_removed,
             "description": self.description,
@@ -246,12 +248,8 @@ class CodingSession:
         response_tokens = sum(
             m.token_count for m in self.messages if m.type == MessageType.RESPONSE and m.token_count
         )
-        tool_calls = sum(
-            1 for m in self.messages if m.type == MessageType.TOOL_CALL
-        )
-        errors = sum(
-            1 for m in self.messages if m.type == MessageType.ERROR
-        )
+        tool_calls = sum(1 for m in self.messages if m.type == MessageType.TOOL_CALL)
+        errors = sum(1 for m in self.messages if m.type == MessageType.ERROR)
         files = list(set(e.path for e in self.file_edits))
         self.summary = SessionSummary(
             total_tokens=prompt_tokens + response_tokens,
